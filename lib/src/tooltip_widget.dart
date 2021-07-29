@@ -36,13 +36,14 @@ class ToolTipWidget extends StatefulWidget {
   final GetPosition? position;
   final Offset? offset;
   final Size? screenSize;
-  final String? title;
+  final Widget? title;
   final String? description;
   final Animation<double>? animationOffset;
   final TextStyle? titleTextStyle;
   final TextStyle? descTextStyle;
   final Widget? container;
   final Color? tooltipColor;
+  final Color? arrowColor;
   final Color? textColor;
   final bool? showArrow;
   final double? contentHeight;
@@ -51,23 +52,23 @@ class ToolTipWidget extends StatefulWidget {
   final VoidCallback? onTooltipTap;
   final EdgeInsets? contentPadding;
 
-  ToolTipWidget(
-      {this.position,
-      this.offset,
-      this.screenSize,
-      this.title,
-      this.description,
-      this.animationOffset,
-      this.titleTextStyle,
-      this.descTextStyle,
-      this.container,
-      this.tooltipColor,
-      this.textColor,
-      this.showArrow,
-      this.contentHeight,
-      this.contentWidth,
-      this.onTooltipTap,
-      this.contentPadding = const EdgeInsets.symmetric(vertical: 8)});
+  ToolTipWidget({this.position,
+    this.offset,
+    this.screenSize,
+    this.title,
+    this.description,
+    this.animationOffset,
+    this.titleTextStyle,
+    this.descTextStyle,
+    this.container,
+    this.tooltipColor,
+    this.textColor,
+    this.showArrow,
+    this.contentHeight,
+    this.arrowColor,
+    this.contentWidth,
+    this.onTooltipTap,
+    this.contentPadding = const EdgeInsets.symmetric(vertical: 8)});
 
   @override
   _ToolTipWidgetState createState() => _ToolTipWidgetState();
@@ -92,25 +93,27 @@ class _ToolTipWidgetState extends State<ToolTipWidget> {
 
   double _getTooltipWidth() {
     final titleStyle = widget.titleTextStyle ??
-        Theme.of(context)
+        Theme
+            .of(context)
             .textTheme
             .headline6!
             .merge(TextStyle(color: widget.textColor));
     final descriptionStyle = widget.descTextStyle ??
-        Theme.of(context)
+        Theme
+            .of(context)
             .textTheme
             .subtitle2!
             .merge(TextStyle(color: widget.textColor));
-    final titleLength = widget.title == null
+    /*final titleLength = widget.title == null
         ? 0
         : _textSize(widget.title!, titleStyle).width +
             widget.contentPadding!.right +
-            widget.contentPadding!.left;
+            widget.contentPadding!.left;*/
     final descriptionLength =
         _textSize(widget.description!, descriptionStyle).width +
             widget.contentPadding!.right +
             widget.contentPadding!.left;
-    var maxTextWidth = max(titleLength, descriptionLength);
+    var maxTextWidth = descriptionLength;
     if (maxTextWidth > widget.screenSize!.width - 20) {
       return widget.screenSize!.width - 20;
     } else {
@@ -188,7 +191,7 @@ class _ToolTipWidgetState extends State<ToolTipWidget> {
         : widget.position!.getTop() + (contentOffsetMultiplier * 3);
 
     final num contentFractionalOffset =
-        contentOffsetMultiplier.clamp(-1.0, 0.0);
+    contentOffsetMultiplier.clamp(-1.0, 0.0);
 
     var paddingTop = ToolTipWidget.isArrowUp ? 22.0 : 0.0;
     var paddingBottom = ToolTipWidget.isArrowUp ? 0.0 : 27.0;
@@ -217,7 +220,7 @@ class _ToolTipWidgetState extends State<ToolTipWidget> {
                   color: Colors.transparent,
                   child: Container(
                     padding:
-                        EdgeInsets.only(top: paddingTop, bottom: paddingBottom),
+                    EdgeInsets.only(top: paddingTop, bottom: paddingBottom),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: GestureDetector(
@@ -236,25 +239,17 @@ class _ToolTipWidgetState extends State<ToolTipWidget> {
                                       : CrossAxisAlignment.center,
                                   children: <Widget>[
                                     widget.title != null
-                                        ? Text(
-                                            widget.title!,
-                                            style: widget.titleTextStyle ??
-                                                Theme.of(context)
-                                                    .textTheme
-                                                    .headline6!
-                                                    .merge(TextStyle(
-                                                        color:
-                                                            widget.textColor)),
-                                          )
+                                        ? widget.title!
                                         : Container(),
                                     Text(
                                       widget.description!,
                                       style: widget.descTextStyle ??
-                                          Theme.of(context)
+                                          Theme
+                                              .of(context)
                                               .textTheme
                                               .subtitle2!
                                               .merge(TextStyle(
-                                                  color: widget.textColor)),
+                                              color: widget.textColor)),
                                     ),
                                   ],
                                 ),
@@ -274,6 +269,7 @@ class _ToolTipWidgetState extends State<ToolTipWidget> {
     } else {
       return Stack(
         children: <Widget>[
+          true ? _getArrow(contentOffsetMultiplier) : Container(),
           Positioned(
             left: _getSpace(),
             top: contentY - 10,
@@ -322,8 +318,8 @@ class _ToolTipWidgetState extends State<ToolTipWidget> {
     final contentFractionalOffset = contentOffsetMultiplier.clamp(-1.0, 0.0);
     return Positioned(
       top: ToolTipWidget.isArrowUp
-          ? widget.position!.getBottom()
-          : widget.position!.getTop() - 1,
+          ? widget.position!.getBottom() - 2
+          : widget.position!.getTop() - 5,
       left: widget.position!.getCenter() - 24,
       child: FractionalTranslation(
         translation: Offset(0.0, contentFractionalOffset),
@@ -336,7 +332,7 @@ class _ToolTipWidgetState extends State<ToolTipWidget> {
             ToolTipWidget.isArrowUp
                 ? Icons.arrow_drop_up
                 : Icons.arrow_drop_down,
-            color: widget.tooltipColor,
+            color: widget.arrowColor,
             size: 50,
           ),
         ),
@@ -346,11 +342,13 @@ class _ToolTipWidgetState extends State<ToolTipWidget> {
 
   Size _textSize(String text, TextStyle style) {
     final textPainter = (TextPainter(
-            text: TextSpan(text: text, style: style),
-            maxLines: 1,
-            textScaleFactor: MediaQuery.of(context).textScaleFactor,
-            textDirection: TextDirection.ltr)
-          ..layout())
+        text: TextSpan(text: text, style: style),
+        maxLines: 1,
+        textScaleFactor: MediaQuery
+            .of(context)
+            .textScaleFactor,
+        textDirection: TextDirection.ltr)
+      ..layout())
         .size;
     return textPainter;
   }

@@ -41,7 +41,7 @@ class Showcase extends StatefulWidget {
   final GlobalKey? key;
 
   final Widget child;
-  final String? title;
+  final Widget? title;
   final String? description;
   final ShapeBorder? shapeBorder;
   final TextStyle? titleTextStyle;
@@ -51,6 +51,7 @@ class Showcase extends StatefulWidget {
   final double overlayOpacity;
   final Widget? container;
   final Color showcaseBackgroundColor;
+  final Color arrowColor;
   final Color textColor;
   final bool showArrow;
   final double? height;
@@ -64,40 +65,41 @@ class Showcase extends StatefulWidget {
 
   const Showcase(
       {required this.key,
-      required this.child,
-      this.title,
-      required this.description,
-      this.shapeBorder,
-      this.overlayColor = Colors.black,
-      this.overlayOpacity = 0.75,
-      this.titleTextStyle,
-      this.descTextStyle,
-      this.showcaseBackgroundColor = Colors.white,
-      this.textColor = Colors.black,
-      this.showArrow = true,
-      this.onTargetClick,
-      this.disposeOnTap,
-      this.animationDuration = const Duration(milliseconds: 2000),
-      this.disableAnimation = false,
-      this.contentPadding =
-          const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-      this.onToolTipClick,
-      this.overlayPadding = EdgeInsets.zero})
+        required this.child,
+        this.title,
+        required this.description,
+        this.shapeBorder,
+        this.overlayColor = Colors.black,
+        this.overlayOpacity = 0.75,
+        this.titleTextStyle,
+        this.arrowColor = Colors.white,
+        this.descTextStyle,
+        this.showcaseBackgroundColor = Colors.white,
+        this.textColor = Colors.black,
+        this.showArrow = true,
+        this.onTargetClick,
+        this.disposeOnTap,
+        this.animationDuration = const Duration(milliseconds: 2000),
+        this.disableAnimation = false,
+        this.contentPadding =
+        const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+        this.onToolTipClick,
+        this.overlayPadding = EdgeInsets.zero})
       : height = null,
         width = null,
         container = null,
         assert(overlayOpacity >= 0.0 && overlayOpacity <= 1.0,
-            "overlay opacity should be >= 0.0 and <= 1.0."),
+        "overlay opacity should be >= 0.0 and <= 1.0."),
         assert(
-            onTargetClick == null
-                ? true
-                : (disposeOnTap == null ? false : true),
-            "disposeOnTap is required if you're using onTargetClick"),
+        onTargetClick == null
+            ? true
+            : (disposeOnTap == null ? false : true),
+        "disposeOnTap is required if you're using onTargetClick"),
         assert(
-            disposeOnTap == null
-                ? true
-                : (onTargetClick == null ? false : true),
-            "onTargetClick is required if you're using disposeOnTap");
+        disposeOnTap == null
+            ? true
+            : (onTargetClick == null ? false : true),
+        "onTargetClick is required if you're using disposeOnTap");
 
   const Showcase.withWidget({
     this.key,
@@ -108,6 +110,7 @@ class Showcase extends StatefulWidget {
     this.title,
     this.description,
     this.shapeBorder,
+    this.arrowColor = Colors.white,
     this.overlayColor = Colors.black,
     this.overlayOpacity = 0.75,
     this.titleTextStyle,
@@ -123,7 +126,7 @@ class Showcase extends StatefulWidget {
   })  : showArrow = false,
         onToolTipClick = null,
         assert(overlayOpacity >= 0.0 && overlayOpacity <= 1.0,
-            "overlay opacity should be >= 0.0 and <= 1.0.");
+        "overlay opacity should be >= 0.0 and <= 1.0.");
 
   @override
   _ShowcaseState createState() => _ShowcaseState();
@@ -144,15 +147,15 @@ class _ShowcaseState extends State<Showcase> with TickerProviderStateMixin {
       duration: widget.animationDuration,
       vsync: this,
     )..addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-          _slideAnimationController.reverse();
+      if (status == AnimationStatus.completed) {
+        _slideAnimationController.reverse();
+      }
+      if (_slideAnimationController.isDismissed) {
+        if (!widget.disableAnimation) {
+          _slideAnimationController.forward();
         }
-        if (_slideAnimationController.isDismissed) {
-          if (!widget.disableAnimation) {
-            _slideAnimationController.forward();
-          }
-        }
-      });
+      }
+    });
 
     _slideAnimation = CurvedAnimation(
       parent: _slideAnimationController,
@@ -188,7 +191,9 @@ class _ShowcaseState extends State<Showcase> with TickerProviderStateMixin {
     });
 
     if (activeStep == widget.key) {
-      _slideAnimationController.forward();
+      if (!widget.disableAnimation) {
+        _slideAnimationController.forward();
+      }
       if (ShowCaseWidget.of(context)!.autoPlay) {
         timer = Timer(
             Duration(
@@ -248,16 +253,18 @@ class _ShowcaseState extends State<Showcase> with TickerProviderStateMixin {
   }
 
   Widget buildOverlayOnTarget(
-    Offset offset,
-    Size size,
-    Rect rectBound,
-    Size screenSize,
-  ) =>
+      Offset offset,
+      Size size,
+      Rect rectBound,
+      Size screenSize,
+      ) =>
       Visibility(
         visible: _showShowCase,
         maintainAnimation: true,
         maintainState: true,
-        child: Stack(
+        child: offset.dx.isNaN
+            ? SizedBox.shrink()
+            : Stack(
           children: [
             GestureDetector(
               onTap: _nextIfAny,
@@ -295,6 +302,7 @@ class _ShowcaseState extends State<Showcase> with TickerProviderStateMixin {
               contentHeight: widget.height,
               contentWidth: widget.width,
               onTooltipTap: _getOnTooltipTap,
+              arrowColor: widget.arrowColor,
               contentPadding: widget.contentPadding,
             ),
           ],
