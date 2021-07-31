@@ -39,7 +39,7 @@ import 'tooltip_widget.dart';
 class Showcase extends StatefulWidget {
   @override
   final GlobalKey? key;
-
+  final String? forcePosition;
   final Widget child;
   final Widget? title;
   final String? description;
@@ -68,6 +68,7 @@ class Showcase extends StatefulWidget {
         required this.child,
         this.title,
         required this.description,
+        this.forcePosition,
         this.shapeBorder,
         this.overlayColor = Colors.black,
         this.overlayOpacity = 0.75,
@@ -115,6 +116,7 @@ class Showcase extends StatefulWidget {
     this.overlayOpacity = 0.75,
     this.titleTextStyle,
     this.descTextStyle,
+    this.forcePosition,
     this.showcaseBackgroundColor = Colors.white,
     this.textColor = Colors.black,
     this.onTargetClick,
@@ -300,6 +302,7 @@ class _ShowcaseState extends State<Showcase> with TickerProviderStateMixin {
               textColor: widget.textColor,
               showArrow: widget.showArrow,
               contentHeight: widget.height,
+              forcePosition: widget.forcePosition,
               contentWidth: widget.width,
               onTooltipTap: _getOnTooltipTap,
               arrowColor: widget.arrowColor,

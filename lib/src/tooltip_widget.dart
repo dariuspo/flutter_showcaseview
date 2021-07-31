@@ -47,28 +47,31 @@ class ToolTipWidget extends StatefulWidget {
   final Color? textColor;
   final bool? showArrow;
   final double? contentHeight;
+  final String? forcePosition;
   final double? contentWidth;
   static late bool isArrowUp;
   final VoidCallback? onTooltipTap;
   final EdgeInsets? contentPadding;
 
-  ToolTipWidget({this.position,
-    this.offset,
-    this.screenSize,
-    this.title,
-    this.description,
-    this.animationOffset,
-    this.titleTextStyle,
-    this.descTextStyle,
-    this.container,
-    this.tooltipColor,
-    this.textColor,
-    this.showArrow,
-    this.contentHeight,
-    this.arrowColor,
-    this.contentWidth,
-    this.onTooltipTap,
-    this.contentPadding = const EdgeInsets.symmetric(vertical: 8)});
+  ToolTipWidget(
+      {this.position,
+      this.offset,
+      this.screenSize,
+      this.title,
+      this.description,
+      this.animationOffset,
+      this.titleTextStyle,
+      this.forcePosition,
+      this.descTextStyle,
+      this.container,
+      this.tooltipColor,
+      this.textColor,
+      this.showArrow,
+      this.contentHeight,
+      this.arrowColor,
+      this.contentWidth,
+      this.onTooltipTap,
+      this.contentPadding = const EdgeInsets.symmetric(vertical: 8)});
 
   @override
   _ToolTipWidgetState createState() => _ToolTipWidgetState();
@@ -78,6 +81,9 @@ class _ToolTipWidgetState extends State<ToolTipWidget> {
   Offset? position;
 
   bool isCloseToTopOrBottom(Offset position) {
+    if (widget.forcePosition != null){
+      return widget.forcePosition == 'ABOVE';
+    };
     var height = 120.0;
     height = widget.contentHeight ?? height;
     return (widget.screenSize!.height - position.dy) <= height;
@@ -93,14 +99,12 @@ class _ToolTipWidgetState extends State<ToolTipWidget> {
 
   double _getTooltipWidth() {
     final titleStyle = widget.titleTextStyle ??
-        Theme
-            .of(context)
+        Theme.of(context)
             .textTheme
             .headline6!
             .merge(TextStyle(color: widget.textColor));
     final descriptionStyle = widget.descTextStyle ??
-        Theme
-            .of(context)
+        Theme.of(context)
             .textTheme
             .subtitle2!
             .merge(TextStyle(color: widget.textColor));
@@ -191,7 +195,7 @@ class _ToolTipWidgetState extends State<ToolTipWidget> {
         : widget.position!.getTop() + (contentOffsetMultiplier * 3);
 
     final num contentFractionalOffset =
-    contentOffsetMultiplier.clamp(-1.0, 0.0);
+        contentOffsetMultiplier.clamp(-1.0, 0.0);
 
     var paddingTop = ToolTipWidget.isArrowUp ? 22.0 : 0.0;
     var paddingBottom = ToolTipWidget.isArrowUp ? 0.0 : 27.0;
@@ -220,7 +224,7 @@ class _ToolTipWidgetState extends State<ToolTipWidget> {
                   color: Colors.transparent,
                   child: Container(
                     padding:
-                    EdgeInsets.only(top: paddingTop, bottom: paddingBottom),
+                        EdgeInsets.only(top: paddingTop, bottom: paddingBottom),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: GestureDetector(
@@ -244,12 +248,11 @@ class _ToolTipWidgetState extends State<ToolTipWidget> {
                                     Text(
                                       widget.description!,
                                       style: widget.descTextStyle ??
-                                          Theme
-                                              .of(context)
+                                          Theme.of(context)
                                               .textTheme
                                               .subtitle2!
                                               .merge(TextStyle(
-                                              color: widget.textColor)),
+                                                  color: widget.textColor)),
                                     ),
                                   ],
                                 ),
@@ -342,13 +345,11 @@ class _ToolTipWidgetState extends State<ToolTipWidget> {
 
   Size _textSize(String text, TextStyle style) {
     final textPainter = (TextPainter(
-        text: TextSpan(text: text, style: style),
-        maxLines: 1,
-        textScaleFactor: MediaQuery
-            .of(context)
-            .textScaleFactor,
-        textDirection: TextDirection.ltr)
-      ..layout())
+            text: TextSpan(text: text, style: style),
+            maxLines: 1,
+            textScaleFactor: MediaQuery.of(context).textScaleFactor,
+            textDirection: TextDirection.ltr)
+          ..layout())
         .size;
     return textPainter;
   }
